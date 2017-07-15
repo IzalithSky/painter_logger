@@ -92,3 +92,7 @@ void MainWindow::setOpacity(int opacity) {
 void MainWindow::stateBegginingPoint() {
     ui->textBrowser->append("Начало: " + QString::number(ui->spinBoxX->value()) + ", " + QString::number(ui->spinBoxY->value()));
 }
+
+void MainWindow::on_pushButtonUndo_clicked() {
+    ui->widget->undo();
+}

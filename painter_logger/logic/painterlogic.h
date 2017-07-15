@@ -20,8 +20,9 @@ public slots:
     void reset(QPoint startPosition);
     void onCursorReseted(QPoint startPosition);
     void onPositionChanged(QPoint currentPosition);
+    void undo();
 private:
-    LinePosition currentLine;
+    QPoint startPoint;
     QList<LinePosition> linesList;
 };
 

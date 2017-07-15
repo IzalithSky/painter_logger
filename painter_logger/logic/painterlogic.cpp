@@ -5,8 +5,7 @@ PainterLogic::PainterLogic(QPoint startPosition, QObject *parent) : QObject(pare
 }
 
 void PainterLogic::reset(QPoint startPosition) {
-    currentLine.a = startPosition;
-    currentLine.b = startPosition;
+    startPoint = startPosition;
     linesList.clear();
 }
 
@@ -15,9 +14,18 @@ const QList<LinePosition> &PainterLogic::getLineList() {
 }
 
 void PainterLogic::onPositionChanged(QPoint currentPosition) {
-    currentLine.a = currentLine.b;
-    currentLine.b = currentPosition;
-    linesList.append(currentLine);
+    LinePosition lp;
+    if (linesList.isEmpty())
+        lp.a = startPoint;
+    else
+        lp.a = linesList.last().b;
+    lp.b = currentPosition;
+    linesList.append(lp);
+}
+
+void PainterLogic::undo() {
+    if (linesList.isEmpty() == false)
+        linesList.takeLast();
 }
 
 void PainterLogic::onCursorReseted(QPoint startPosition) {

@@ -7,11 +7,12 @@ Cursor::Cursor(QObject *parent) : QObject(parent) {
     maxY = 100;
     gridStep = 10;
     startPosition = QPoint(0, 0);
-    currentPosition = startPosition;
+    history.append(startPosition);
 }
 
 void Cursor::reset() {
-    currentPosition = startPosition;
+    history.clear();
+    history.append(startPosition);
     emit reseted(startPosition);
 }
 
@@ -23,7 +24,7 @@ void Cursor::setXRange(int minX, int maxX) {
         resetToDefault();
 
     if (positionIsAllowed(startPosition) == false ||
-        positionIsAllowed(currentPosition) == false) {
+        positionIsAllowed(history.last()) == false) {
         emit cursorIsBeyondRange();
         startPosition.setX(minX);
         reset();
@@ -38,7 +39,7 @@ void Cursor::setYRange(int minY, int maxY) {
         resetToDefault();
 
     if (positionIsAllowed(startPosition) == false ||
-        positionIsAllowed(currentPosition) == false) {
+        positionIsAllowed(history.last()) == false) {
         emit cursorIsBeyondRange();
         startPosition.setY(minY);
         reset();
@@ -65,7 +66,7 @@ QPoint Cursor::getStartPosition() {
 }
 
 QPoint Cursor::getCurrentPosition() {
-    return currentPosition;
+    return history.last();
 }
 
 int Cursor::getGridStep() {
@@ -74,7 +75,7 @@ int Cursor::getGridStep() {
 
 bool Cursor::changeCurrentPosition(int keyCode)
 {
-    QPoint pos = currentPosition;
+    QPoint pos = history.last();
 
     if (keyCode == Qt::Key_8) {       // ↑
         pos.setY(pos.y() - gridStep);
@@ -101,7 +102,7 @@ bool Cursor::changeCurrentPosition(int keyCode)
 
 
     if (positionIsAllowed(pos))
-        currentPosition = pos;
+        history.append(pos);
     else
         return false;
 
@@ -109,6 +110,13 @@ bool Cursor::changeCurrentPosition(int keyCode)
     emit positionChanged(pos);
 
     return true;
+}
+
+void Cursor::undo() {
+    if (history.length() > 1)
+        history.takeLast();
+
+    emit undone();
 }
 
 bool Cursor::positionIsAllowed(QPoint position) {
@@ -126,5 +134,6 @@ void Cursor::resetToDefault() {
     maxY = 100;
     gridStep = 10;
     startPosition = QPoint(0, 0);
-    currentPosition = startPosition;
+    history.clear();
+    history.append(startPosition);
 }

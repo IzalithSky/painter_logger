@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QList>
 
 class Cursor : public QObject
 {
@@ -18,8 +19,10 @@ public:
     QPoint getCurrentPosition();
     int getGridStep();
     bool changeCurrentPosition(int keyCode);
+    void undo();
 signals:
     void reseted(QPoint startPosition);
+    void undone();
     void keyCodeAccepted(int keyCode);
     void positionChanged(QPoint currentPos);
     void cursorIsBeyondRange();
@@ -31,7 +34,7 @@ private:
     int maxY;
     int gridStep;
     QPoint startPosition;
-    QPoint currentPosition;
+    QList <QPoint> history;
     bool positionIsAllowed(QPoint position);
     void resetToDefault();
 };

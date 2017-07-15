@@ -38,6 +38,8 @@ private Q_SLOTS:
     void cursor_BumpWallLeft_test();
     void cursor_BumpWallRight_test();
 
+    void cursor_Undo_test();
+
     void painterLogic_SingleMoveUp_test();
     void painterLogic_SingleMoveDown_test();
     void painterLogic_SingleMoveLeft_test();
@@ -48,6 +50,8 @@ private Q_SLOTS:
     void painterLogic_SingleMoveDownRight_test();
 
     void painterLogic_MoveAround_test();
+
+    void painterLogic_Undo_test();
 
     void actionLogger_SingleMoveUp_test();
     void actionLogger_SingleMoveDown_test();
@@ -64,6 +68,8 @@ private Q_SLOTS:
     void actionLogger_SequenceDownLeft_test();
     void actionLogger_SequenceDownThenUpRight_test();
     void actionLogger_MoveAroundWithSeqences_test();
+
+    void actionLogger_Undo_test();
 };
 
 Tests::Tests() {}
@@ -204,6 +210,20 @@ void Tests::cursor_BumpWallRight_test() {
     QCOMPARE(spy.count(), 1);
 }
 
+void Tests::cursor_Undo_test() {
+    cursor->setStartPosition(QPoint(100, 100));
+
+    cursor->changeCurrentPosition(Qt::Key_6);
+    cursor->changeCurrentPosition(Qt::Key_6);
+    cursor->changeCurrentPosition(Qt::Key_6);
+    cursor->changeCurrentPosition(Qt::Key_6);
+
+    cursor->undo();
+    cursor->undo();
+
+    QCOMPARE(cursor->getCurrentPosition(), QPoint(120, 100));
+}
+
 void Tests::painterLogic_SingleMoveUp_test() {
     painterLogic->onPositionChanged(QPoint(startPos.x(), startPos.y() - gridStep)); // ↑
     const QList<LinePosition> lpl = painterLogic->getLineList();
@@ -298,6 +318,22 @@ void Tests::painterLogic_MoveAround_test() {
     QCOMPARE(lpl.at(3).b, QPoint(100, 100));
 }
 
+void Tests::painterLogic_Undo_test() {
+    painterLogic->onPositionChanged(QPoint(110, 100));
+    painterLogic->onPositionChanged(QPoint(110, 110));
+    painterLogic->onPositionChanged(QPoint(100, 110));
+
+    painterLogic->undo();
+    painterLogic->undo();
+
+    painterLogic->onPositionChanged(QPoint(110, 90));
+
+    const QList<LinePosition> lpl = painterLogic->getLineList();
+
+    QCOMPARE(lpl.last().a, QPoint(110, 100));
+    QCOMPARE(lpl.last().b, QPoint(110, 90));
+}
+
 void Tests::actionLogger_SingleMoveUp_test() {
     actionLogger->onKeyCodeAccepted(Qt::Key_8);
     const QStringList lmsg = actionLogger->getActionList();
@@ -377,7 +413,7 @@ void Tests::actionLogger_SequenceUp_test() {
     const QStringList lmsg = actionLogger->getActionList();
 
     QCOMPARE(lmsg.length(), 1);
-    QCOMPARE(QString(lmsg.last()), QString("1. ↑ x3"));
+    QCOMPARE(QString(lmsg.last()), QString("1. ↑ 3"));
 }
 
 void Tests::actionLogger_SequenceDownLeft_test() {
@@ -387,7 +423,7 @@ void Tests::actionLogger_SequenceDownLeft_test() {
     const QStringList lmsg = actionLogger->getActionList();
 
     QCOMPARE(lmsg.length(), 1);
-    QCOMPARE(QString(lmsg.last()), QString("1. ↙ x3"));
+    QCOMPARE(QString(lmsg.last()), QString("1. ↙ 3"));
 }
 
 void Tests::actionLogger_SequenceDownThenUpRight_test() {
@@ -399,8 +435,8 @@ void Tests::actionLogger_SequenceDownThenUpRight_test() {
     const QStringList lmsg = actionLogger->getActionList();
 
     QCOMPARE(lmsg.length(), 2);
-    QCOMPARE(QString(lmsg.at(0)), QString("1. ↓ x3"));
-    QCOMPARE(QString(lmsg.at(1)), QString("2. ↗ x2"));
+    QCOMPARE(QString(lmsg.at(0)), QString("1. ↓ 3"));
+    QCOMPARE(QString(lmsg.at(1)), QString("2. ↗ 2"));
 }
 
 void Tests::actionLogger_MoveAroundWithSeqences_test() {
@@ -421,9 +457,23 @@ void Tests::actionLogger_MoveAroundWithSeqences_test() {
     QCOMPARE(lmsg.length(), 4);
 
     QCOMPARE(QString(lmsg.at(0)), QString("1. →"));
-    QCOMPARE(QString(lmsg.at(1)), QString("2. ↓ x3"));
+    QCOMPARE(QString(lmsg.at(1)), QString("2. ↓ 3"));
     QCOMPARE(QString(lmsg.at(2)), QString("3. ←"));
-    QCOMPARE(QString(lmsg.at(3)), QString("4. ↑ x4"));
+    QCOMPARE(QString(lmsg.at(3)), QString("4. ↑ 4"));
+}
+
+void Tests::actionLogger_Undo_test() {
+    actionLogger->onKeyCodeAccepted(Qt::Key_4);
+    actionLogger->onKeyCodeAccepted(Qt::Key_4);
+    actionLogger->onKeyCodeAccepted(Qt::Key_4);
+    actionLogger->onKeyCodeAccepted(Qt::Key_4);
+
+    actionLogger->undo();
+    actionLogger->undo();
+
+    const QStringList lmsg = actionLogger->getActionList();
+
+    QCOMPARE(QString(lmsg.last()), QString("1. ← 2"));
 }
 
 QTEST_APPLESS_MAIN(Tests)

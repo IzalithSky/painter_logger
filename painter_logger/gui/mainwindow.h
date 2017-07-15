@@ -31,6 +31,7 @@ private slots:
     void on_pushButtonHideTrace_toggled(bool checked);
     void on_horizontalSliderOpacity_valueChanged(int value);
     void onCursourOutOfRange();
+    void on_pushButtonUndo_clicked();
 };
 
 #endif // MAINWINDOW_H

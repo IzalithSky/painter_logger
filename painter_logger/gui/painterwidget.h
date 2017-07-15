@@ -18,6 +18,7 @@ signals:
     void positionChanged(QStringList actionList);
     void cursourOutOfRange();
 public slots:
+    void undo();
     void setGridStep(int step);
     void setPositionX(int x);
     void setPositionY(int y);

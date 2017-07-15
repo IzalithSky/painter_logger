@@ -5,18 +5,37 @@ ActionLogger::ActionLogger(QObject *parent) : QObject(parent) {
 }
 
 void ActionLogger::reset() {
-    lastAction = "";
-    actionSequenceCounter = 0;
-    actionList.clear();
+    actionRecordList.clear();
 }
 
-const QStringList& ActionLogger::getActionList() {
+QStringList ActionLogger::getActionList() {
+    QStringList actionList;
+    int i = 1;
+    foreach (ActionRecord ar, actionRecordList)
+    {
+        QString str = QString::number(i) + ". " + ar.action;
+        if (ar.count > 1)
+            str.append(" " +  QString::number(ar.count));
+
+        actionList.append(str);
+
+        i++;
+    }
     return actionList;
 }
 
 void ActionLogger::onKeyCodeAccepted(int keyCode) {
     QString actionString = actionStringFromKey(keyCode);
     updateActionList(actionString);
+}
+
+void ActionLogger::undo() {
+    if (actionRecordList.isEmpty() == false) {
+        if (actionRecordList.last().count == 1)
+            actionRecordList.takeLast();
+        else
+            actionRecordList.last().count--;
+    }
 }
 
 QString ActionLogger::actionStringFromKey(int keyCode) {
@@ -44,28 +63,14 @@ QString ActionLogger::actionStringFromKey(int keyCode) {
 }
 
 void ActionLogger::updateActionList(QString actionString) {
-    updateSequenceCounterAndLastAction(actionString);
-
-    if (actionSequenceCounter > 0) {
-        QString actionNoPrefix = QString::number(actionList.length()) + ". ";
-        QString newAction = actionNoPrefix + actionString;
-        QString sequenceNoPostfix = " x" + QString::number(actionSequenceCounter + 1);
-        newAction.append(sequenceNoPostfix);
-        actionList.replace(actionList.length() - 1, newAction); // replace last
-    } else {
-        QString actionNoPrefix = QString::number(actionList.length() + 1) + ". ";
-        QString newAction = actionNoPrefix + actionString;
-        actionList.append(newAction);
+    if (actionRecordList.isEmpty())
+        actionRecordList.append(ActionRecord(actionString, 1));
+    else {
+        if (actionString == actionRecordList.last().action)
+            actionRecordList.last().count++;
+        else
+            actionRecordList.append(ActionRecord(actionString, 1));
     }
-}
-
-void ActionLogger::updateSequenceCounterAndLastAction(QString actionString) {
-    if (actionString == lastAction)
-        actionSequenceCounter++;
-    else
-        actionSequenceCounter = 0;
-
-    lastAction = actionString;
 }
 
 void ActionLogger::onCursorReseted(QPoint) {

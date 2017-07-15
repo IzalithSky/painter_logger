@@ -14,14 +14,22 @@ PainterWidget::PainterWidget(QWidget *parent) : QWidget(parent)
     painterLogic = new PainterLogic(cursor->getStartPosition(), this);
     connect(cursor, SIGNAL(reseted(QPoint)), painterLogic, SLOT(onCursorReseted(QPoint)));
     connect(cursor, SIGNAL(positionChanged(QPoint)), painterLogic, SLOT(onPositionChanged(QPoint)));
+    connect(cursor, SIGNAL(undone()), painterLogic, SLOT(undo()));
 
     actionLogger = new ActionLogger(this);
     connect(cursor, SIGNAL(reseted(QPoint)), actionLogger, SLOT(onCursorReseted(QPoint)));
     connect(cursor, SIGNAL(keyCodeAccepted(int)), actionLogger, SLOT(onKeyCodeAccepted(int)));
+    connect(cursor, SIGNAL(undone()), actionLogger, SLOT(undo()));
 
     connect(cursor, SIGNAL(cursorIsBeyondRange()), this, SIGNAL(cursourOutOfRange()));
 
     installEventFilter(this);
+}
+
+void PainterWidget::undo() {
+    cursor->undo();
+    emit positionChanged(actionLogger->getActionList());
+    update();
 }
 
 void PainterWidget::setGridStep(int step) {
